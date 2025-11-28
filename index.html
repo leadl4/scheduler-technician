@@ -1,28 +1,291 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Technician Schedule</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Mon Planning - Technicien</title>
 
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        /* --- DESIGN ÉPURÉ (MINIMALISTE) --- */
+        
+        /* 1. Base & Typographie */
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background-color: #f3f4f6; /* Gris très clair, reposant */
+            margin: 0; 
+            color: #1f2937; /* Gris anthracite, moins dur que le noir pur */
+            padding-bottom: 80px;
+        }
+
+        .container { 
+            padding: 0 20px; 
+            max-width: 600px; /* Plus étroit pour une meilleure lecture sur desktop */
+            margin: 0 auto; 
+        }
+
+        /* 2. Header Minimaliste */
+        #modern-header {
+            background: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e5e7eb; /* Séparation subtile */
+            margin-bottom: 30px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .header-title {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .header-user {
+            font-size: 13px;
+            color: #6b7280; /* Gris moyen */
+            margin-top: 2px;
+        }
+
+        .btn-logout {
+            background: transparent;
+            border: 1px solid #e5e7eb;
+            color: #4b5563;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+            color: #111827;
+        }
+
+        /* 3. Onglets (Tabs) Épurés */
+        .tab-container {
+            display: flex;
+            background: #e5e7eb; /* Fond gris des tabs */
+            padding: 4px;
+            margin: 0 auto 24px auto;
+            border-radius: 12px;
+            max-width: 400px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-weight: 500;
+            color: #6b7280;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #111827;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            font-weight: 600;
+        }
+
+        /* 4. Cartes (Interventions) - Sans icônes */
+        .card { 
+            background: white; 
+            padding: 24px; /* Plus d'espace */
+            margin-bottom: 16px; 
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Ombre très légère */
+            border: 1px solid rgba(0,0,0,0.02);
+            transition: transform 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Indicateur visuel discret sur la gauche */
+        .card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background-color: #3b82f6; /* Bleu standard */
+        }
+
+        /* En-tête de la carte (Date + Badge) */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .date-badge {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            background-color: #f3f4f6;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .status-badge {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #3b82f6;
+            background-color: #eff6ff;
+        }
+
+        /* Corps de la carte */
+        .client-name {
+            margin: 0 0 16px 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .card-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            border-top: 1px solid #f3f4f6;
+            padding-top: 16px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #9ca3af; /* Gris clair */
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .detail-value {
+            font-size: 14px;
+            color: #4b5563;
+            font-weight: 500;
+        }
+
+        /* 5. Cartes Indisponibilités */
+        .unavailability-card {
+            background: white;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .unavailability-card::before {
+            background-color: #ef4444; /* Rouge doux */
+        }
+
+        .unavail-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .unavail-title {
+            font-weight: 600;
+            color: #ef4444;
+            margin-bottom: 2px;
+        }
+
+        .unavail-date {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        /* Login Screen */
+        #login-screen {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            margin-top: 60px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box; /* Important pour que le padding ne dépasse pas */
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            background-color: #111827; /* Noir/Gris très foncé */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* Empty State */
+        .empty-message {
+            text-align: center;
+            color: #9ca3af;
+            font-style: italic;
+            margin-top: 40px;
+        }
+    </style>
 </head>
 <body>
 
+    <!-- Écran de Connexion -->
     <div id="login-screen" class="container">
-        <h2>Connexion</h2>
-        <input type="email" id="email" placeholder="Email du technicien">
+        <h2 style="margin-bottom: 24px; font-weight: 700;">Connexion</h2>
+        <input type="email" id="email" placeholder="adresse@email.com">
         <input type="password" id="password" placeholder="Mot de passe">
         <button onclick="login()" class="btn-primary">Se connecter</button>
-        <p id="error-msg" style="color:red; display:none;"></p>
+        <p id="error-msg" style="color:#ef4444; display:none; margin-top:10px; font-size:13px;"></p>
     </div>
 
-    <div id="schedule-screen" class="container" style="display:none;">
-        <p class="loading" id="loading-text">Chargement des données...</p>
-        <div id="intervention-list"></div>
+    <!-- Écran Principal -->
+    <div id="schedule-screen" style="display:none;">
+        <!-- Le Header sera injecté ici par JS -->
+        
+        <div class="container">
+            <!-- Les Onglets seront injectés ici par JS -->
+            
+            <p id="loading-text" style="text-align:center; color:#6b7280; font-size:14px; margin-top:20px;">
+                Chargement...
+            </p>
+            
+            <div id="intervention-list">
+                <!-- Les cartes seront injectées ici -->
+            </div>
+        </div>
     </div>
 
     <script src="app.js"></script>
