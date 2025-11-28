@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technician Schedule</title>
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+
+    <div id="login-screen" class="container">
+        <h2>Connexion</h2>
+        <input type="email" id="email" placeholder="Email du technicien">
+        <input type="password" id="password" placeholder="Mot de passe">
+        <button onclick="login()" class="btn-primary">Se connecter</button>
+        <p id="error-msg" style="color:red; display:none;"></p>
+    </div>
+
+    <div id="schedule-screen" class="container" style="display:none;">
+        <p class="loading" id="loading-text">Chargement des données...</p>
+        <div id="intervention-list"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
