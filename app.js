@@ -161,6 +161,10 @@ function createUnavailabilityCard(unavail) {
             <span class="unavail-title" style="color:${color}">${label}</span>
             <span class="unavail-date">Du ${startStr} au ${endStr}</span>
         </div>
+        <!-- Pas d'emoji géant, juste une pastille discrète -->
+        <div style="background:${color}20; color:${color}; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:600;">
+            ABSENT
+        </div>
     `;
     return card;
 }
@@ -168,13 +172,23 @@ function createUnavailabilityCard(unavail) {
 // --- 4. LOGIQUE MÉTIER ---
 
 function login() {
-    const email = document.getElementById('email').value;
-    const pass = document.getElementById('password').value;
+    // Ajout du .trim() pour supprimer les espaces accidentels
+    const email = document.getElementById('email').value.trim();
+    const pass = document.getElementById('password').value.trim();
     if (!email || !pass) return alert("Veuillez remplir les champs");
     
     auth.signInWithEmailAndPassword(email, pass).catch(e => {
         const el = document.getElementById('error-msg');
-        el.innerText = e.message;
+        // Traduction simple des erreurs courantes
+        if (e.code === 'auth/invalid-email') {
+            el.innerText = "Format d'email invalide.";
+        } else if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password') {
+            el.innerText = "Email ou mot de passe incorrect.";
+        } else if (e.message.includes("INVALID_LOGIN_CREDENTIALS")) {
+            el.innerText = "Identifiants invalides (Vérifiez le mot de passe).";
+        } else {
+            el.innerText = "Erreur : " + e.message;
+        }
         el.style.display = 'block';
     });
 }
@@ -193,6 +207,15 @@ auth.onAuthStateChanged((user) => {
         createModernHeader();
         initTabs();
         loadRealtimeSchedule(); 
+        
+        // --- TRICK ZOOM RESET ---
+        // Petite astuce pour forcer le reset du zoom si jamais il a eu lieu
+        setTimeout(() => {
+            const viewport = document.querySelector('meta[name="viewport"]');
+            if (viewport) {
+                viewport.content = "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no";
+            }
+        }, 300);
     } else {
         document.getElementById('login-screen').style.display = 'block';
         document.getElementById('schedule-screen').style.display = 'none';
