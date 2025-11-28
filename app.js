@@ -9,19 +9,17 @@ const firebaseConfig = {
     appId: "1:584555187754:web:3a1e4359b63f9fe13cfd53"
 };
 
-// Initialisation
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
-// Variables globales
 let currentAssignments = [];
 let currentUnavailabilities = [];
 let assignmentsRef = null;
 let unavailabilitiesRef = null;
 let showHistory = false; 
 
-// --- 2. FONCTIONS UI (DESIGN MODERNE) ---
+// --- 2. FONCTIONS UI ---
 
 function createModernHeader() {
     if (document.getElementById('modern-header')) return;
@@ -30,7 +28,6 @@ function createModernHeader() {
     const header = document.createElement('div');
     header.id = 'modern-header';
     
-    // Récupération email pour affichage propre
     const user = firebase.auth().currentUser;
     const email = user ? user.email : "";
     
@@ -80,29 +77,21 @@ function switchTab(isHistory) {
     updateUI();
 }
 
-// --- 3. GÉNÉRATION DES CARTES (SANS ICÔNES) ---
+// --- 3. GÉNÉRATION DES CARTES ---
 
 function createInterventionCard(inter) {
     const card = document.createElement('div');
     card.className = 'card';
     
-    // Formatage des dates
     const startDate = new Date(inter.startDate);
     const endDate = new Date(inter.endDate || inter.startDate);
-    
-    // Format court et lisible : "12 mars"
     const dateOptions = { day: 'numeric', month: 'short' };
     const startStr = startDate.toLocaleDateString('fr-FR', dateOptions);
     const endStr = endDate.toLocaleDateString('fr-FR', dateOptions);
     const dateDisplay = (startStr === endStr) ? startStr : `${startStr} - ${endStr}`;
 
-    // Couleur de la barre latérale selon le type (optionnel)
-    let borderColor = '#3b82f6'; // Bleu par défaut
-    if (inter.type === 'MAINTENANCE') borderColor = '#f59e0b'; // Orange
-    if (inter.type === 'INSTALLATION') borderColor = '#10b981'; // Vert
+    let borderColor = '#3b82f6';
     
-    card.style.setProperty('--card-border-color', borderColor);
-    // On applique la couleur via le style inline pour le pseudo-element (astuce JS)
     const style = document.createElement('style');
     style.innerHTML = `.card[data-id="${inter.startDate}"]::before { background-color: ${borderColor} !important; }`;
     card.setAttribute('data-id', inter.startDate);
@@ -114,8 +103,8 @@ function createInterventionCard(inter) {
             <span class="status-badge" style="color:${borderColor}; background-color:${borderColor}15;">${inter.type}</span>
         </div>
         
-        <h3 class="client-name">${inter.clientName}</h3>
-        
+        <h3 class="card-title-large" style="color:${borderColor}">${inter.clientName}</h3>
+
         <div class="card-details">
             <div class="detail-item">
                 <span class="detail-label">Ville</span>
@@ -136,35 +125,33 @@ function createUnavailabilityCard(unavail) {
     
     const startDate = new Date(unavail.startDate);
     const endDate = new Date(unavail.endDate);
-    const startStr = startDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-    const endStr = endDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    const dateOptions = { day: 'numeric', month: 'short' };
+    const startStr = startDate.toLocaleDateString('fr-FR', dateOptions);
+    const endStr = endDate.toLocaleDateString('fr-FR', dateOptions);
+    const dateDisplay = (startStr === endStr) ? startStr : `${startStr} - ${endStr}`;
 
-    // Couleur douce selon le motif
-    let color = '#ef4444'; // Rouge défaut
+    let color = '#ea434cff';
     let label = unavail.reason;
     
-    if (unavail.reason === 'RTT' || unavail.reason === 'Congés') {
-        color = '#10b981'; // Vert émeraude
-        label = "Congés / RTT";
+    if (unavail.reason === 'Arrêt de travail') {
+        color = '#ff871dff';
     } else if (unavail.reason === 'Formation') {
-        color = '#8b5cf6'; // Violet
+        color = '#ea71b6ff'; // Violet
     }
 
-    // On force la couleur de la barre latérale
+    // Barre latérale colorée
     const style = document.createElement('style');
     style.innerHTML = `.card[data-id="${unavail.startDate}-u"]::before { background-color: ${color} !important; }`;
     card.setAttribute('data-id', unavail.startDate + '-u');
     card.appendChild(style);
 
+    // Structure identique aux Interventions
     card.innerHTML += `
-        <div class="unavail-info">
-            <span class="unavail-title" style="color:${color}">${label}</span>
-            <span class="unavail-date">Du ${startStr} au ${endStr}</span>
+        <div class="card-header">
+            <span class="date-badge">${dateDisplay}</span>
         </div>
-        <!-- Pas d'emoji géant, juste une pastille discrète -->
-        <div style="background:${color}20; color:${color}; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:600;">
-            ABSENT
-        </div>
+        
+        <h3 class="card-title-large" style="color:${color}">${label}</h3>
     `;
     return card;
 }
@@ -172,23 +159,16 @@ function createUnavailabilityCard(unavail) {
 // --- 4. LOGIQUE MÉTIER ---
 
 function login() {
-    // Ajout du .trim() pour supprimer les espaces accidentels
     const email = document.getElementById('email').value.trim();
     const pass = document.getElementById('password').value.trim();
     if (!email || !pass) return alert("Veuillez remplir les champs");
     
     auth.signInWithEmailAndPassword(email, pass).catch(e => {
         const el = document.getElementById('error-msg');
-        // Traduction simple des erreurs courantes
-        if (e.code === 'auth/invalid-email') {
-            el.innerText = "Format d'email invalide.";
-        } else if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password') {
-            el.innerText = "Email ou mot de passe incorrect.";
-        } else if (e.message.includes("INVALID_LOGIN_CREDENTIALS")) {
-            el.innerText = "Identifiants invalides (Vérifiez le mot de passe).";
-        } else {
-            el.innerText = "Erreur : " + e.message;
-        }
+        if (e.code === 'auth/invalid-email') el.innerText = "Format d'email invalide.";
+        else if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password') el.innerText = "Email ou mot de passe incorrect.";
+        else if (e.message.includes("INVALID_LOGIN_CREDENTIALS")) el.innerText = "Identifiants invalides.";
+        else el.innerText = "Erreur : " + e.message;
         el.style.display = 'block';
     });
 }
@@ -197,7 +177,7 @@ function logout() {
     if (assignmentsRef) assignmentsRef.off();
     if (unavailabilitiesRef) unavailabilitiesRef.off();
     auth.signOut();
-    window.location.reload(); // Simple refresh pour nettoyer
+    window.location.reload();
 }
 
 auth.onAuthStateChanged((user) => {
@@ -208,13 +188,9 @@ auth.onAuthStateChanged((user) => {
         initTabs();
         loadRealtimeSchedule(); 
         
-        // --- TRICK ZOOM RESET ---
-        // Petite astuce pour forcer le reset du zoom si jamais il a eu lieu
         setTimeout(() => {
             const viewport = document.querySelector('meta[name="viewport"]');
-            if (viewport) {
-                viewport.content = "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no";
-            }
+            if (viewport) viewport.content = "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no";
         }, 300);
     } else {
         document.getElementById('login-screen').style.display = 'block';
@@ -227,7 +203,6 @@ function loadRealtimeSchedule() {
     if (!user) return;
     
     document.getElementById('loading-text').style.display = 'block';
-    
     const myEmail = user.email;
 
     assignmentsRef = db.ref('assignments').orderByChild('technicianEmail').equalTo(myEmail);
