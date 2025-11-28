@@ -2,7 +2,8 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- MODIFICATION ICI : ajout de maximum-scale=1 pour empêcher le zoom intempestif -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mon Planning - Technicien</title>
 
     <!-- Firebase SDKs -->
@@ -16,15 +17,17 @@
         /* 1. Base & Typographie */
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background-color: #f3f4f6; /* Gris très clair, reposant */
+            background-color: #f3f4f6;
             margin: 0; 
-            color: #1f2937; /* Gris anthracite, moins dur que le noir pur */
+            color: #1f2937;
             padding-bottom: 80px;
+            /* Empêche le rebond élastique sur iOS */
+            overscroll-behavior-y: none;
         }
 
         .container { 
             padding: 0 20px; 
-            max-width: 600px; /* Plus étroit pour une meilleure lecture sur desktop */
+            max-width: 600px;
             margin: 0 auto; 
         }
 
@@ -35,7 +38,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #e5e7eb; /* Séparation subtile */
+            border-bottom: 1px solid #e5e7eb;
             margin-bottom: 30px;
             position: sticky;
             top: 0;
@@ -51,7 +54,7 @@
 
         .header-user {
             font-size: 13px;
-            color: #6b7280; /* Gris moyen */
+            color: #6b7280;
             margin-top: 2px;
         }
 
@@ -76,7 +79,7 @@
         /* 3. Onglets (Tabs) Épurés */
         .tab-container {
             display: flex;
-            background: #e5e7eb; /* Fond gris des tabs */
+            background: #e5e7eb;
             padding: 4px;
             margin: 0 auto 24px auto;
             border-radius: 12px;
@@ -106,17 +109,16 @@
         /* 4. Cartes (Interventions) - Sans icônes */
         .card { 
             background: white; 
-            padding: 24px; /* Plus d'espace */
+            padding: 24px;
             margin-bottom: 16px; 
             border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Ombre très légère */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             border: 1px solid rgba(0,0,0,0.02);
             transition: transform 0.2s;
             position: relative;
             overflow: hidden;
         }
         
-        /* Indicateur visuel discret sur la gauche */
         .card::before {
             content: '';
             position: absolute;
@@ -124,10 +126,9 @@
             top: 0;
             bottom: 0;
             width: 4px;
-            background-color: #3b82f6; /* Bleu standard */
+            background-color: #3b82f6;
         }
 
-        /* En-tête de la carte (Date + Badge) */
         .card-header {
             display: flex;
             justify-content: space-between;
@@ -155,7 +156,6 @@
             background-color: #eff6ff;
         }
 
-        /* Corps de la carte */
         .client-name {
             margin: 0 0 16px 0;
             font-size: 18px;
@@ -179,7 +179,7 @@
         .detail-label {
             font-size: 11px;
             text-transform: uppercase;
-            color: #9ca3af; /* Gris clair */
+            color: #9ca3af;
             margin-bottom: 4px;
             font-weight: 600;
         }
@@ -200,7 +200,7 @@
         }
         
         .unavailability-card::before {
-            background-color: #ef4444; /* Rouge doux */
+            background-color: #ef4444;
         }
 
         .unavail-info {
@@ -235,20 +235,21 @@
             margin-bottom: 12px;
             border: 1px solid #d1d5db;
             border-radius: 8px;
-            font-size: 14px;
-            box-sizing: border-box; /* Important pour que le padding ne dépasse pas */
+            /* MODIFICATION IMPORTANTE : 16px empêche le zoom automatique sur iPhone */
+            font-size: 16px; 
+            box-sizing: border-box;
         }
 
         .btn-primary {
             width: 100%;
             padding: 12px;
-            background-color: #111827; /* Noir/Gris très foncé */
+            background-color: #111827;
             color: white;
             border: none;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 16px; /* Ajusté à 16px aussi pour cohérence */
         }
 
         /* Empty State */
