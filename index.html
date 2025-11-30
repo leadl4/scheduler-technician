@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mon Planning - Technicien</title>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="login-screen" class="container screen-center">
+        <div class="login-card">
+            <h2>Connexion</h2>
+            <input type="email" id="email" placeholder="adresse@email.com" autocomplete="email">
+            <input type="password" id="password" placeholder="Mot de passe" autocomplete="current-password">
+            <button onclick="login()" class="btn-primary">Se connecter</button>
+            <p id="error-msg" class="error-text"></p>
+        </div>
+    </div>
+
+    <div id="schedule-screen" class="hidden">
+        
+        <header id="modern-header">
+            <div>
+                <h1 class="header-title">Mon Planning</h1>
+                <div id="user-email-display" class="header-user">Chargement...</div>
+            </div>
+            <button onclick="logout()" class="btn-logout">Déconnexion</button>
+        </header>
+
+        <div class="container main-content">
+            <div class="tab-container">
+                <button id="tab-future" class="tab-btn active" onclick="switchTab(false)">À venir</button>
+                <button id="tab-history" class="tab-btn" onclick="switchTab(true)">Historique</button>
+            </div>
+
+            <p id="loading-text">Chargement des données...</p>
+            <div id="intervention-list"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
